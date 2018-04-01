@@ -1,0 +1,170 @@
+.app-bg {
+    background: url(../images/timg.jpg) center top no-repeat;
+    background-size: cover;
+}
+
+.p-header {
+    height: .8rem;
+    border-bottom: 1px solid rgba(255, 255, 255, .2);
+    position: relative;
+}
+.p-header .back {
+    position: absolute;
+    left: .1rem;
+    top: .1rem;
+}
+.p-header .back i {
+    font-family: "宋体";
+    font-size: .6rem;
+    display: block;
+    padding: 0 10px;
+    color: rgba(255, 255, 255, .8);
+}
+.p-header .title {
+    text-align: center;
+    height: 100%;
+    color: rgba(255, 255, 255, .8);
+}
+.p-header .title strong {
+    display: block;
+    font-size: .28rem;
+    line-height: 1.2;
+    padding-top: .1rem;
+}
+.p-header .title em {
+    display: block;
+    font-size: .24rem;
+    -webkit-transform: scale(.95);
+    transform: scale(.95);
+}
+
+
+.p-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.p-box-top {
+    flex: 1;
+    display: flex;
+}
+.p-circle {
+    width: 5.75rem;
+    height: 5.75rem;
+    position: relative;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.p-circle p {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background: url(../images/circle.png) no-repeat;
+    background-size: 100% 100%;
+    z-index: 9;
+}
+.p-circle span {
+    display: block;
+    width: 4rem;
+    height: 4rem;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.p-circle span.rotate {
+    -webkit-animation: rotateAni 20s linear infinite;
+    animation: rotateAni 20s linear infinite;
+}
+.p-circle span.paused {
+    -webkit-animation-play-state: paused;
+    animation-play-state: paused;
+}
+@keyframes rotateAni {
+    from {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    to {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+.p-ctrl-box {
+    height: .3rem;
+    display: flex;
+}
+.p-ctrl-box .p-ctrl-time {
+    width: 1rem;
+    line-height: .3rem;
+    font-size: .2rem;
+    color: rgba(255, 255, 255, .8);
+    text-align: center;
+}
+.p-ctrl-box .p-ctrl-range {
+    flex: 1;
+    position: relative;
+    display: flex;
+}
+.p-ctrl-box .p-ctrl-range p {
+    height: 3px;
+    width: 100%;
+    background: rgba(0, 0, 0, .4);
+    margin: auto;
+}
+.p-ctrl-box .p-ctrl-range p i {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: #d9352b;
+}
+.p-ctrl-box .p-ctrl-range strong {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: .3rem;
+    height: .3rem;
+    border-radius: 50%;
+    background: #fff;
+    margin-left: -.15rem;
+    display: flex;
+}
+.p-ctrl-box .p-ctrl-range strong::after {
+    content: '';
+    display: block;
+    width: 5px;
+    height: 5px;
+    background: #d9352b;
+    border-radius: 50%;
+    margin: auto;
+}
+
+.p-dot-box {
+    height: .8rem;
+    width: 65%;
+    margin: .5rem auto 0;
+    display: flex;
+    justify-content: space-around;
+}
+.p-dot-box p {
+    width: .8rem;
+    height: .8rem;
+}
+.p-dot-box p i {
+    display: block;
+    font-size: .6rem;
+    text-align: center;
+    line-height: .8rem;
+    color: rgba(255, 255, 255, .7);
+}
+.p-dot-box p:nth-of-type(2) i {
+    font-size: .8rem;
+}
+
+
+.p-box-bottom {
+    height: 2.7rem;
+}

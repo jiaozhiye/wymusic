@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>网易云音乐</title>
+    <link rel="stylesheet" href="../common/css/reset.css">
+    <link rel="stylesheet" href="../common/css/style.css">
+    <link rel="stylesheet" href="../common/css/iconfont.css">
+    <link rel="stylesheet" href="../assets/css/list.css">
+    <script>
+        var deviceWidth = document.documentElement.clientWidth;
+        if (deviceWidth > 750) deviceWidth = 750;
+        document.documentElement.style.fontSize = deviceWidth / 7.5 + 'px';
+    </script>
+</head>
+<body>
+    <div id="app">
+        <header class="l-header">
+            <a href="#" class="back">
+                <i><</i>
+            </a>
+            <h4 class="title">歌曲清单</h4>
+        </header>
+        <section class="p-main">
+            <nav class="l-nav">
+                <ul>
+                    <li cid="1">推荐</li>
+                    <li cid="2">华语</li>
+                    <li cid="3">欧美</li>
+                    <li cid="4">韩国</li>
+                    <li cid="5">日本</li>
+                </ul>
+                <dl>
+                    <span></span>
+                </dl>
+            </nav>
+            <div class="l-slider">
+                <img src="../assets/images/pic.jpg">
+            </div>
+            <div class="l-song-list">
+                <ul></ul>
+            </div>
+        </section>
+    </div>
+    
+    <script src="../common/js/common.js"></script>
+    <script src="../common/js/zepto.min.js"></script>
+    <script src="../assets/js/J-nav.js"></script>
+    <script>
+        (function(){
+            // 导航
+            var oNav = new KG.JZY.component.Nav({
+                navWrapper: document.querySelector('.l-nav > ul'),
+                navSlider: document.querySelector('.l-nav > dl > span'),
+                callback: function(index){
+                    excuteFn();
+                }
+            });
+            oNav.install();
+            
+            // 执行入口
+            function excuteFn(){
+                var cid = getClassID();
+                //  处理 Loading
+                var $loading = $('<div class="loading"></div>');
+                $('#app').append($loading);
+                // 发起请求
+                getData(cid, function(songList){
+                    // var str = '<ul>';
+                    var $domList = [];
+                    for (var i = 0; i < songList.length; i++){
+                        var str = `
+                            <li>
+                                <a href="./play.html?cid=${cid}&id=${songList[i].id}">
+                                    <strong class="img-wrapper">
+                                        <img src="${songList[i].imgurl}">
+                                    </strong>
+                                    <div class="con-right">
+                                        <h5>${songList[i].name}</h5>
+                                        <p>${songList[i].desc}</p>
+                                    </div>
+                                </a>
+                            </li>
+                        `;
+                        $domList.push($(str));
+                    }
+                    // str += '</ul>';
+                    // dom
+                    // $('.l-song-list').html(str);
+
+                    insertDom($domList);
+
+                    // 移除 Loading
+                    $loading.remove();
+                });
+            }
+
+            // 通过迭代器间隔插入节点
+            function insertDom(arr){
+                var i = 0;
+                var $wrapper = $('.l-song-list > ul');
+                $wrapper.html('');
+                var timer = setInterval(function(){
+                    if (i > arr.length - 1){
+                        clearInterval(timer);
+                    } else {
+                        $wrapper.append(arr[i++]);
+                    }
+                }, 200);
+            }
+
+            // 获取选中分类的 classid
+            function getClassID(){
+                return document.querySelector('.l-nav > ul > .selected').getAttribute('cid');
+            }
+
+            // 获取数据
+            function getData(_id, callback){
+                $.ajax({
+                    type: 'GET',
+                    url: '../server/list.json',
+                    data: {classid: _id},
+                    dataType: 'json',
+                    success: function(data){
+                        // console.log(data);
+                        if (data.errCode == 1){
+                            callback && callback(data.info);
+                        } else {
+                            alert(data.errMsg);
+                        }
+                    }
+                });
+            }
+
+            excuteFn();
+        })()
+    </script>
+</body>
+</html>

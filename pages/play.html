@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>网易云音乐</title>
+    <link rel="stylesheet" href="../common/css/reset.css">
+    <link rel="stylesheet" href="../common/css/style.css">
+    <link rel="stylesheet" href="../common/css/iconfont.css">
+    <link rel="stylesheet" href="../assets/css/play.css">
+    <script>
+        var deviceWidth = document.documentElement.clientWidth;
+        if (deviceWidth > 750) deviceWidth = 750;
+        document.documentElement.style.fontSize = deviceWidth / 7.5 + 'px';
+    </script>
+</head>
+<body>
+    <div id="app" class="app-bg">
+        <header class="p-header">
+            <a href="./list.html" class="back">
+                <i><</i>
+            </a>
+            <h4 class="title" id="title">
+                <strong></strong>
+                <em></em>
+            </h4>
+        </header>
+        <section class="p-main">
+            <div class="p-box-top">
+                <div class="p-circle">
+                    <span id="rotate-img"></span>
+                    <p></p>
+                </div>
+            </div>
+            <div class="p-box-bottom">
+                <div class="p-ctrl-box">
+                    <p class="p-ctrl-time" id="curTime"></p>
+                    <div class="p-ctrl-range" id="ctrl-range">
+                        <p><i></i></p>
+                        <strong></strong>
+                    </div>
+                    <p class="p-ctrl-time" id="totalTime"></p>
+                </div>
+                <div class="p-dot-box">
+                    <p id="prev"><i class="iconfont icon-48shangyishou"></i></p>
+                    <p id="playState"><i class="iconfont icon-zanting"></i></p>
+                    <p id="next"><i class="iconfont icon-49xiayishou"></i></p>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <script src="../common/js/common.js"></script>
+    <script src="../common/js/tools.js"></script>
+    <script src="../common/js/zepto.min.js"></script>
+    <script src="../assets/js/J-drag.js"></script>
+    <script src="../assets/js/J-audio.js"></script>
+    <script>
+        (function(){
+            // 获取曲目ID和分类ID
+            var song_id  = getSearch('id');
+            var class_id = getSearch('cid');
+            
+            // 数据获取
+            function getData(cid, callback){
+                $.ajax({
+                    type: 'GET',
+                    url: '../server/list.json',
+                    data: {
+                        classid: cid
+                    },
+                    dataType: 'json',
+                    success: function(data){
+                        console.log(data)
+                        if (data.errCode == 1){
+                            callback && callback(data.info);
+                        } else {
+                            alert(data.errMsg);
+                        }
+                    }
+                });
+            }
+
+            // 获取必要节点对象
+            var $title = $('#title'),
+                $rotate = $('#rotate-img'),
+                $curTime = $('#curTime'),
+                $totalTime = $('#totalTime'),
+                $prevBtn = $('#prev'),
+                $nextBtn = $('#next'),
+                $playBtn = $('#playState');
+
+            getData(class_id, function(songList){
+
+                if (typeof songList == 'undefined' && songList.length == 0){
+                    return;
+                }
+
+                // 获取当前曲目的索引
+                var index = songList.findIndex(function(item){
+                    return item.id == song_id
+                });
+                
+                var isAuto = (index != -1) ? true : false;
+                var timer = null;
+                
+                // 实例化音频组件
+                var oAudio = new KG.JZY.component.Audio({
+                    media: null,        // 音频对象，建议不传
+                    songList: songList, // 歌曲列表
+                    curIndex: (index != -1) ? index : 0,    // 当前播放曲目索引
+                    playType: 4,        // 1 顺序播放  2 随机播放  3 单曲循环  4 全部循环
+                    autoPlay: isAuto,     // 自动播放
+                    callback: function(res){
+                        if (res == 'start'){
+                            // 初始化执行
+                            setInfomation();
+                            setCurTime();
+                            setTotalTime();
+                            if (isAuto){
+                                startPlay();
+                            } else {
+                                stopPlay();
+                            }
+                        } else { // 曲目 顺序播放 播放结束
+                            stopPlay();
+                        }
+                    }
+                });
+                oAudio.install();
+
+                // 实例化拖拽组件
+                var oDrag = new KG.JZY.component.Drag({
+                    rangeWrapper: document.getElementById('ctrl-range'),
+                    callback: function(v){
+                        var toatal = oAudio.getTotalTime();
+                        // 实现歌曲的快进
+                        oAudio.setCurrentTime(toatal * v);
+                        setCurTime();
+                    }
+                });
+                oDrag.install();
+                
+                // 启动播放器
+                function startPlay(){
+                    // 先清空定时器
+                    timer && clearInterval(timer);
+                    // 设置播放按钮样式 - 暂停图标
+                    $playBtn.children().attr('class', 'iconfont icon-zanting');
+                    // 开启图片旋转
+                    $rotate.removeClass('paused');
+                    // 开启定时器，同步当前时间和进度条
+                    timer = setInterval(function(){
+                        var totalTime = oAudio.getTotalTime();
+                        if (totalTime > 0){
+                            oDrag.setPosition(oAudio.getCurrentTime() / totalTime);
+                        }
+                        setCurTime();
+                    }, 1000);
+                }
+                
+                // 暂停播放器
+                function stopPlay(){
+                    timer && clearInterval(timer);
+                    // 设置播放按钮样式 - 播放图标
+                    $playBtn.children().attr('class', 'iconfont icon-bofang');
+                    // 停止图片旋转
+                    $rotate.addClass('paused');
+                }
+
+                // 设置当前时间
+                function setCurTime(){
+                    $curTime.html(oAudio.formatTime(oAudio.getCurrentTime()));
+                }
+
+                // 设置总时长
+                function setTotalTime(){
+                    $totalTime.html(oAudio.formatTime(oAudio.getTotalTime()));
+                }
+
+                // 设置歌曲名称、作者及图片旋转
+                function setInfomation(){
+                    var music = oAudio.getMusicInfo();
+                    // 设置文字信息
+                    $title.children().first().html(music.title);
+                    $title.children().last().html(music.author);
+                    // 设置旋转
+                    $rotate.removeClass('rotate').css('backgroundImage', 'url('+ music.imgurl +')');
+                    // 延迟解决 css3 动画 bug
+                    setTimeout(function(){
+                        $rotate.addClass('rotate')
+                    }, 50);
+                }
+
+                // 播放上一首
+                $prevBtn.on('click', function(){
+                    oAudio.playPrev();
+                    startPlay();
+                });
+
+                // 播放下一首
+                $nextBtn.on('click', function(){
+                    oAudio.playNext();
+                    startPlay();
+                });
+
+                // 播放/暂停
+                $playBtn.on('click', function(){
+                    oAudio.playPause(function(isPlay){
+                        if (!isPlay){
+                            stopPlay();
+                        } else {
+                            startPlay();
+                        }
+                    });
+                });
+                
+            });
+
+        })()
+    </script>
+</body>
+</html>
